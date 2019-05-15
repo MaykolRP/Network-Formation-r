@@ -6,7 +6,7 @@ library(MASS)
 #install.packages("snow")
 library(snow)
 
-
+prrun=0.5 #change within function pr
 
 #Función que calcula el mínimo valor propio del grafo. 
 trials <- seq(1,10)
@@ -80,7 +80,7 @@ mini_val<-function(trial){
   eigvv<-eigen(G, only.values = TRUE)
   #M?n Valor propio
   mmvv<-lapply(eigvv[1],min) 
-  #return(mmvv)
+  return(mmvv)
   
 }
 
@@ -88,11 +88,13 @@ numCores <- detectCores()
 numCores
 
 #not parallel
-system.time(lapply(trials, mini_val))
+#system.time(lapply(trials, mini_val))
 
 #parallel
 cl<-makeCluster(numCores,type="SOCK")
-  system.time(clusterApply(cl, trials,mini_val))
+#system.time(clusterApply(cl, trials,mini_val))
+  results_p <-clusterApply(cl, trials,mini_val)
   stopCluster(cl)
 
-#results_p <- mclapply(trials, mini_val, mc.cores = numCores)
+out<-unlist(results_p)
+write.table(out,file=paste('MinEigenSimu',prrun,'.csv'),dec=".", sep = ";")
